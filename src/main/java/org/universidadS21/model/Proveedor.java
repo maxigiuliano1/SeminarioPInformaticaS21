@@ -1,15 +1,13 @@
 package org.universidadS21.model;
 
 public class Proveedor {
-    private int iDproveedor;
+    private int idProveedor;
     private String nombre;
     private String email;
     private String telefono;
 
-    public Proveedor(){}
-
-    public Proveedor(int iDproveedor, String nombre, String email, String telefono) {
-        this.iDproveedor = iDproveedor;
+    public Proveedor(int idProveedor, String nombre, String email, String telefono) {
+        this.idProveedor = idProveedor;
         this.nombre = nombre;
         this.email = email;
         this.telefono = telefono;
@@ -21,12 +19,12 @@ public class Proveedor {
         this.telefono = telefono;
     }
 
-    public int getiDproveedor() {
-        return iDproveedor;
+    public int getIdProveedor() {
+        return idProveedor;
     }
 
-    public void setiDproveedor(int iDproveedor) {
-        this.iDproveedor = iDproveedor;
+    public void setIdProveedor(int idProveedor) {
+        this.idProveedor = idProveedor;
     }
 
     public String getNombre() {
@@ -56,7 +54,7 @@ public class Proveedor {
     @Override
     public String toString() {
         return "Proveedor{" +
-                "iDproveedor=" + iDproveedor +
+                "iDproveedor=" + idProveedor +
                 ", nombre='" + nombre + '\'' +
                 ", email='" + email + '\'' +
                 ", telefono='" + telefono + '\'' +

@@ -1,22 +1,21 @@
 package org.universidadS21.controller;
 
 import org.universidadS21.config.ConexionBD;
+import org.universidadS21.exceptions.BaseDatosException;
 import org.universidadS21.model.Producto;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ProductoController {
-    // Metodo para insertar un producto nuevo
-    public void insertarProducto(Producto producto) throws SQLException{
+
+    public int insertarProducto(Producto producto) throws BaseDatosException{
         final String SQL = "INSERT INTO producto (nombre, categoria, precio_costo, precio_venta, stock, stock_min) VALUES (?,?,?,?,?,?)";
         // Hago uso del recurso try with resources, para evitar colocar el finally para cerrar las conexiones luego del catch
-        try (Connection conexionBD = ConexionBD.getConexion();
-             PreparedStatement statement = conexionBD.prepareStatement(SQL)) {
+        try (Connection connectionBD = ConexionBD.getConexion();
+             PreparedStatement statement = connectionBD.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setString(1, producto.getNombre());
             statement.setString(2, producto.getCategoria());
@@ -25,94 +24,96 @@ public class ProductoController {
             statement.setInt(5, producto.getStock());
             statement.setInt(6, producto.getStockMin());
 
-            String msg = (statement.executeUpdate() == 1) ?
-                    "Producto Insertado Correctamente" : "Error al insertar el producto";
-            System.out.println(msg);
-        } catch (SQLException e) {
-            throw new SQLException("Error en la conexion: " + e.getMessage());
+            int filasAfectadas = statement.executeUpdate();
+
+            if (filasAfectadas == 0) {
+                throw new BaseDatosException("No se pudo insertar el producto.");
+            }
+
+            try (ResultSet resultSet = statement.getGeneratedKeys()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                } else {
+                    throw new BaseDatosException("No se pudo obtener el ID generado del producto.");
+                }
+            }
+        } catch (SQLException e){
+            throw new BaseDatosException("Error al insertar el producto: " + e.getMessage(), e);
         }
     }
 
-    // Metodo para listar los productos
-    public List<Producto> listarProductos() throws SQLException{
+    public List<Producto> listarProductos() throws BaseDatosException{
         List<Producto> listaProductos = new ArrayList<>();
         final String SQL = "SELECT * FROM producto";
+
         // Hago uso del recurso try with resources, para evitar colocar el finally para cerrar las conexiones luego del catch
-        try (Connection conexionBD = ConexionBD.getConexion();
-             PreparedStatement statement = conexionBD.prepareStatement(SQL);
+        try (Connection connectionBD = ConexionBD.getConexion();
+             PreparedStatement statement = connectionBD.prepareStatement(SQL);
              ResultSet result = statement.executeQuery(SQL)) {
 
             while (result.next()) {
-                Producto producto = new Producto(
-                        result.getInt("id_producto"),
-                        result.getString("nombre"),
-                        result.getString("categoria"),
-                        result.getDouble("precio_costo"),
-                        result.getDouble("precio_venta"),
-                        result.getInt("stock"),
-                        result.getInt("stock_min")
-                );
+                Producto producto = mapearProducto(result);
                 listaProductos.add(producto);
             }
+
+            return listaProductos;
         } catch (SQLException e) {
-            throw new SQLException("Error con la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al recuperar la lista de productos: " + e.getMessage(), e);
         }
-        return listaProductos;
     }
 
-    // Metodo para buscar un producto por ID
-    public Producto buscarProductoId(int productoId) throws SQLException {
-        Producto producto = null;
+    public Optional<Producto> buscarProductoId(int productoId) throws BaseDatosException {
         final String SQL = "SELECT * FROM producto WHERE id_producto = ?";
-
         // Hago uso del recurso try with resources, para evitar colocar el finally para cerrar las conexiones luego del catch
-        try(Connection conexionBD = ConexionBD.getConexion();
-            PreparedStatement statement = conexionBD.prepareStatement(SQL)){
+        try(Connection connectionBD = ConexionBD.getConexion();
+            PreparedStatement statement = connectionBD.prepareStatement(SQL)){
 
             statement.setInt(1, productoId);
-            ResultSet result = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
 
-            if(result.next()){
-                producto = new Producto(
-                        result.getInt("id_producto"),
-                        result.getString("nombre"),
-                        result.getString("categoria"),
-                        result.getDouble("precio_costo"),
-                        result.getDouble("precio_venta"),
-                        result.getInt("stock"),
-                        result.getInt("stock_min")
-                );
+            if(resultSet.next()){
+                return Optional.of(mapearProducto(resultSet));
             }
+
+            return Optional.empty();
         } catch (SQLException e) {
-            throw new SQLException("Error en la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al buscar producto por ID: " + productoId, e);
         }
+    }
+
+    private Producto mapearProducto(ResultSet resultSet) throws SQLException{
+        Producto producto = new Producto();
+        producto.setIdProducto(resultSet.getInt("id_producto"));
+        producto.setNombre(resultSet.getString("nombre"));
+        producto.setCategoria(resultSet.getString("categoria"));
+        producto.setPrecioCosto(resultSet.getDouble("precio_costo"));
+        producto.setStock(resultSet.getInt("stock"));
+        producto.setStockMin(resultSet.getInt("stock_min"));
         return producto;
     }
 
-    // Metodo para eliminar producto por ID
-    public void eliminarProducto(int productoId) throws SQLException{
+    public void eliminarProductoPorId(int productoId) throws BaseDatosException{
         String sql = "DELETE FROM producto WHERE id_producto = ?";
-        try (Connection conexionBD = ConexionBD.getConexion();
-             PreparedStatement stmt = conexionBD.prepareStatement(sql)) {
+        try (Connection connectionBD = ConexionBD.getConexion();
+             PreparedStatement stmt = connectionBD.prepareStatement(sql)) {
 
             stmt.setInt(1, productoId);
             int result = stmt.executeUpdate();
             String msg = (result == 1) ? "Producto eliminado correctamente" : "No se pudo eliminar el producto";
             System.out.printf(msg);
         } catch (SQLException e) {
-            throw new SQLException("Error con la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al eliminar el producto con id: " + productoId, e);
         }
     }
 
-    // Metodo para actualizar producto por ID
-    public void actualizarPrecioCostoProducto(int productoId, Double precioCosto) throws SQLException{
+    public void actualizarPrecioCostoProducto(int productoId, Double precioCosto) throws BaseDatosException{
         String sql = "UPDATE producto SET precio_costo = ?, precio_venta = ? WHERE id_producto = ?";
 
-        try(Connection conexionBD = ConexionBD.getConexion();
-            PreparedStatement statement = conexionBD.prepareStatement(sql)){
-            Producto producto = buscarProductoId(productoId);
+        try(Connection connectionBD = ConexionBD.getConexion();
+            PreparedStatement statement = connectionBD.prepareStatement(sql)){
+            Optional<Producto> producto = buscarProductoId(productoId);
 
-            if(producto != null){
+            if(producto.isPresent()){
                 statement.setDouble(1,precioCosto);
                 statement.setDouble(2, precioCosto * 1.3);
                 statement.setInt(3, productoId);
@@ -124,7 +125,8 @@ public class ProductoController {
                 System.out.println("No existe producto con el id: " + productoId);
             }
         }catch (SQLException e){
-            throw new SQLException("Error con la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al actualizar el precio de costo con productoId: " + productoId
+                    + " y precioCosto: " + precioCosto, e);
         }
     }
 }

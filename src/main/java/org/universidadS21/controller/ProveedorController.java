@@ -1,6 +1,7 @@
 package org.universidadS21.controller;
 
 import org.universidadS21.config.ConexionBD;
+import org.universidadS21.exceptions.BaseDatosException;
 import org.universidadS21.model.Proveedor;
 
 import java.sql.*;
@@ -8,12 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProveedorController {
+    public void insertarProveedor(Proveedor proveedor) throws BaseDatosException {
+        String sql = "INSERT INTO proveedor (nombre, email, telefono) VALUES (?, ?, ?)";
 
-    public void insertarProveedor(Proveedor proveedor) throws SQLException{
-        String sql = "INSERT INTO proveedor (nombre, , activo) VALUES (?, ?, ?)";
-
-        try (Connection conexionBD = ConexionBD.getConexion();
-             PreparedStatement statement = conexionBD.prepareStatement(sql)) {
+        try (Connection connectionBD = ConexionBD.getConexion();
+             PreparedStatement statement = connectionBD.prepareStatement(sql)) {
 
             statement.setString(1, proveedor.getNombre());
             statement.setString(2, proveedor.getEmail());
@@ -24,17 +24,16 @@ public class ProveedorController {
             System.out.println(msg);
 
         } catch (SQLException e) {
-            throw new SQLException("Error en la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al insertar un proveedor: " + e.getMessage(), e);
         }
     }
 
-    // Listar todos los proveedores
-    public List<Proveedor> listarProveedores() throws SQLException{
+    public List<Proveedor> listarProveedores() throws BaseDatosException{
         List<Proveedor> lista = new ArrayList<>();
         String sql = "SELECT * FROM proveedor";
 
-        try (Connection conexionBD = ConexionBD.getConexion();
-             Statement statement = conexionBD.createStatement();
+        try (Connection connectionBD = ConexionBD.getConexion();
+             Statement statement = connectionBD.createStatement();
              ResultSet result = statement.executeQuery(sql)) {
 
             while (result.next()) {
@@ -46,19 +45,19 @@ public class ProveedorController {
                 );
                 lista.add(proveedor);
             }
+
+            return lista;
         } catch (SQLException e) {
-            throw new SQLException("Error con la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al listar proveedores: " + e.getMessage(), e);
         }
-        return lista;
     }
 
-    // Metodo para buscar un proveedor por ID
-    public Proveedor buscarProductoId(int proveedorId) throws SQLException {
+    public Proveedor buscarProductoId(int proveedorId) throws BaseDatosException {
         Proveedor proveedor = null;
         final String SQL = "SELECT * FROM proveedor WHERE id_proveedor = ?";
 
-        try(Connection conexionBD = ConexionBD.getConexion();
-            PreparedStatement statement = conexionBD.prepareStatement(SQL)){
+        try(Connection connectionBD = ConexionBD.getConexion();
+            PreparedStatement statement = connectionBD.prepareStatement(SQL)){
 
             statement.setInt(1, proveedorId);
             ResultSet result = statement.executeQuery();
@@ -72,13 +71,12 @@ public class ProveedorController {
                 );
             }
         } catch (SQLException e) {
-            throw new SQLException("Error en la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al buscar proveedor por id: " + e.getMessage(), e);
         }
         return proveedor;
     }
 
-    // Metodo para eliminar proveedor por ID
-    public void eliminarProducto(int proveedorId) throws SQLException{
+    public void eliminarProveedor(int proveedorId) throws BaseDatosException{
         String sql = "DELETE FROM proveedor WHERE id_proveedor = ?";
         try (Connection conexionBD = ConexionBD.getConexion();
              PreparedStatement stmt = conexionBD.prepareStatement(sql)) {
@@ -88,7 +86,7 @@ public class ProveedorController {
             String msg = (result == 1) ? "Proveedor eliminado correctamente" : "No se pudo eliminar el proveedor";
             System.out.printf(msg);
         } catch (SQLException e) {
-            throw new SQLException("Error con la conexion: " + e.getMessage());
+            throw new BaseDatosException("Error al eliminar proveedor por id: " + e.getMessage(), e);
         }
     }
 }

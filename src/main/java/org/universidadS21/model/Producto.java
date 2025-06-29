@@ -11,21 +11,19 @@ public class Producto {
 
     public Producto(){};
 
-    public Producto(String nombre, String categoria, Double precioCosto, Double precioVenta, int stock, int stockMin) {
+    public Producto(String nombre, String categoria, Double precioCosto, int stock, int stockMin) {
         this.nombre = nombre;
         this.categoria = categoria;
         this.precioCosto = precioCosto;
-        this.precioVenta = precioVenta;
         this.stock = stock;
         this.stockMin = stockMin;
     }
 
-    public Producto(int idProducto, String nombre, String categoria, Double precioCosto, Double precioVenta, int stock, int stockMin) {
+    public Producto(int idProducto, String nombre, String categoria, Double precioCosto, int stock, int stockMin) {
         this.idProducto = idProducto;
         this.nombre = nombre;
         this.categoria = categoria;
         this.precioCosto = precioCosto;
-        this.precioVenta = precioVenta;
         this.stock = stock;
         this.stockMin = stockMin;
     }
