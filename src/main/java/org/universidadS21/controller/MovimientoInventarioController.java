@@ -11,20 +11,20 @@ import java.util.List;
 
 public class MovimientoInventarioController {
 
-    public boolean registrarMovimientoInventario(MovimientoInventario movimiento) throws BaseDatosException{
+    public void registrarMovimientoInventario(MovimientoInventario movimiento) throws BaseDatosException{
         if (movimiento.getTipoMovimiento().equalsIgnoreCase("SALIDA")) {
             if (!validarStockDisponible(movimiento.getIdProducto(), movimiento.getCantidad())) {
                 System.out.println("No hay suficiente stock para realizar la salida.");
-                return false;
+                return;
             }
         }
 
         if (!insertarMovimientoInventario(movimiento)) {
             System.out.println("Error al registrar el movimiento de inventario.");
-            return false;
+            return;
         }
 
-        return actualizarStock(movimiento.getIdProducto(), movimiento.getCantidad(), movimiento.getTipoMovimiento());
+        actualizarStock(movimiento.getIdProducto(), movimiento.getCantidad(), movimiento.getTipoMovimiento());
     }
 
     private boolean validarStockDisponible(int idProducto, int cantidadSolicitada) throws BaseDatosException {
@@ -69,7 +69,7 @@ public class MovimientoInventarioController {
         }
     }
 
-    private boolean actualizarStock(int idProducto, int cantidad, String tipoMovimiento) throws BaseDatosException{
+    private void actualizarStock(int idProducto, int cantidad, String tipoMovimiento) throws BaseDatosException{
         String operador = tipoMovimiento.equalsIgnoreCase("ENTRADA") ? "+" : "-";
 
         String sql = "UPDATE producto SET stock = stock " + operador + " ? WHERE id_producto = ?";
@@ -80,12 +80,10 @@ public class MovimientoInventarioController {
             stmt.setInt(1, cantidad);
             stmt.setInt(2, idProducto);
 
-            int filas = stmt.executeUpdate();
-            return filas > 0;
+            stmt.executeUpdate();
 
         } catch (SQLException e) {
             System.out.println("Error al actualizar stock: " + e.getMessage());
-            return false;
         }
     }
 
