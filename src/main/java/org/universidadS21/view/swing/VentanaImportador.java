@@ -1,13 +1,13 @@
 package org.universidadS21.view.swing;
 
-import org.universidadS21.controller.ProductoController;
+import org.universidadS21.controller.ImportadorController;
 import org.universidadS21.exceptions.BaseDatosException;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class VentanaImportador extends JFrame {
-    private final ProductoController productoController = new ProductoController();
+    private final ImportadorController importadorController = new ImportadorController();
 
     public VentanaImportador(){
         setTitle("Importar o Actualizar Lista de Precios desde Excel");
@@ -33,7 +33,7 @@ public class VentanaImportador extends JFrame {
 
         btnInsertarProductosDesdeExcel.addActionListener(e -> {
             try{
-                productoController.insertarProductosDesdeArchivoExcel();
+                importadorController.insertarProductosDesdeArchivoExcel();
                 JOptionPane.showMessageDialog(this, "Productos insertados correctamente.");
             } catch (BaseDatosException exception){
                 JOptionPane.showMessageDialog(this, "Error al insertar productos desde archivo excel.");
@@ -42,7 +42,7 @@ public class VentanaImportador extends JFrame {
 
         btnActualizarPreciosDesdeExcel.addActionListener(e -> {
             try {
-                productoController.actualizarPreciosProductosDesdeArchivoExcel();
+                importadorController.actualizarPreciosDesdeArchivoExcel();
                 JOptionPane.showMessageDialog(this, "Productos actualizados correctamente.");
             } catch (BaseDatosException exception) {
                 JOptionPane.showMessageDialog(this, "Error al actualizar precios de productos desde archivo excel.");
